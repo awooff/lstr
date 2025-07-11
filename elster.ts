@@ -43,5 +43,3 @@ elster.on(Events.InteractionCreate, async interaction => {
 	}
 });
 
-
-
