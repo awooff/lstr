@@ -71,14 +71,14 @@ const generateText = (maxLength = 100) => {
 };
 
 /**
-  * here is where we will make some nice changes :)
-  *
-  */
+ * here is where we will make some nice changes :)
+ *
+ */
 
 // Load training data from files
 const loadTrainingData = () => {
 	throw new Error("Not yet implemented!");
-}
+};
 
 // Initialize training data on module load
 loadTrainingData();
