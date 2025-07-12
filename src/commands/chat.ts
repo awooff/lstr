@@ -53,7 +53,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 			messages: [
 				{ role: "user", content: userMessage },
 			],
-			temperature: 0.5,
+			temperature: 1.0,
 			stream: true,
 		});
 
@@ -99,7 +99,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 		if (!finalOutput) {
 			const failEmbed = new EmbedBuilder()
 				.setTitle(`You asked: ${userMessage}`)
-				.setDescription("_[No meaningful response]_ 🤷🏽‍♀️")
+				.setDescription("_[No meaningful response]_")
 				.setColor(0xFF5555)
 				.setFooter({ text: `You: ${userMessage}` });
 
