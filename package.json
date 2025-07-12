@@ -18,6 +18,7 @@
 	},
 	"dependencies": {
 		"@discordeno/bot": "^21.0.0",
+		"@huggingface/inference": "^4.5.1",
 		"@types/dotenv": "^8.2.3",
 		"discord.js": "^14.21.0",
 		"dotenv": "^17.2.0"
