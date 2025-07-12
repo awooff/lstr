@@ -50,9 +50,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 		const stream = await client.chatCompletionStream({
 			model: "deepseek-ai/DeepSeek-R1-0528",
 			provider: "sambanova",
-			messages: [
-				{ role: "user", content: userMessage },
-			],
+			messages: [{ role: "user", content: userMessage }],
 			temperature: 1.0,
 			stream: true,
 		});
@@ -61,7 +59,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 		const embed = new EmbedBuilder()
 			.setTitle(`User has asked: ${userMessage}`)
 			.setDescription("`Thinking...`")
-			.setColor(0x5865F2)
+			.setColor(0x5865f2);
 
 		await interaction.editReply({ embeds: [embed] });
 
@@ -87,7 +85,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 				const partialEmbed = new EmbedBuilder()
 					.setTitle(`You asked: ${userMessage}`)
 					.setDescription(visibleText.slice(0, 4096 - 5) + " ▌")
-					.setColor(0x5865F2)
+					.setColor(0x5865f2)
 					.setFooter({ text: `You: ${userMessage}` });
 
 				await interaction.editReply({ embeds: [partialEmbed] });
@@ -100,7 +98,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 			const failEmbed = new EmbedBuilder()
 				.setTitle(`You asked: ${userMessage}`)
 				.setDescription("_[No meaningful response]_")
-				.setColor(0xFF5555)
+				.setColor(0xff5555)
 				.setFooter({ text: `You: ${userMessage}` });
 
 			await interaction.editReply({ embeds: [failEmbed] });
@@ -111,14 +109,14 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 		const chunks = splitIntoChunks(finalOutput, 1024);
 		const firstEmbed = new EmbedBuilder()
 			.setTitle(`You: ${userMessage}`)
-			.setColor(0x5865F2)
-			.setDescription(chunks[0] as any)
+			.setColor(0x5865f2)
+			.setDescription(chunks[0] as any);
 
 		await interaction.editReply({ embeds: [firstEmbed] });
 
 		for (let i = 1; i < chunks.length; i++) {
 			const embed = new EmbedBuilder()
-				.setColor(0x5865F2)
+				.setColor(0x5865f2)
 				.setDescription(chunks[i] as any);
 			await interaction.followUp({ embeds: [embed] });
 		}
@@ -126,11 +124,12 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 		logger.error("Streaming inference error:", err);
 		const errorEmbed = new EmbedBuilder()
 			.setTitle(":Error:")
-			.setDescription(`Something went wrong:\n\`\`\`${String((err as any)?.message || err)}\`\`\``)
-			.setColor(0xFF0000)
+			.setDescription(
+				`Something went wrong:\n\`\`\`${String((err as any)?.message || err)}\`\`\``,
+			)
+			.setColor(0xff0000)
 			.setFooter({ text: `You asked: ${userMessage}` });
 
 		await interaction.editReply({ embeds: [errorEmbed] });
 	}
 }
-

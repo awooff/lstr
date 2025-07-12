@@ -24,7 +24,7 @@ const addTextToChain = (text : string, order = 2) => {
 		starters.push(starter)
 
 		// Build the chain
-		for (let i = 0 i <= words.length - order i++) {
+		for (let i = 0; i <= words.length  - order ;i++) {
 			const key = words.slice(i, i + order).join(" ")
 			const nextWord = words[i + order]
 
@@ -48,7 +48,7 @@ const generateText = (maxLength = 100) => {
 	const starter = starters[Math.floor(Math.random() * starters.length)]
 	const result = starter.split(" ")
 
-	for (let i = 0 i < maxLength i++) {
+	for (let i = 0; i < maxLength ; i++) {
 		const key = result.slice(-2).join(" ")
 		const possibilities = markovChain.get(key)
 
@@ -109,7 +109,7 @@ const parseCSVLine = (line : string) => {
 	let current = ""
 	let inQuotes = false
 
-	for (let i = 0 i < line.length i++) {
+	for (let i; = 0 i < line.length ; i++) {
 		const char = line[i]
 
 		if (char === '"') {
@@ -160,7 +160,7 @@ const loadCSV = (content : any) =>  {
 		return
 	}
 
-	for (let i = 1 i < lines.length i++) {
+	for (let i = 1; i < lines.length;  i++) {
 		const line = lines[i].trim()
 		if (!line) continue
 
@@ -284,7 +284,7 @@ export default {
 				.setDescription("Show statistics about the current Markov chain"),
 		),
 
-	async execute(interaction) {
+	async execute(interaction : any) {
 		const subcommand = interaction.options.getSubcommand()
 
 		if (subcommand === "generate") {
