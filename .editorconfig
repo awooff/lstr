@@ -1,7 +1,12 @@
-[*]
 root = true
-lf = true
 
+[*]
+end_of_line = lf
+charset = utf-8
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = tab
 
-[{ts,js,json}]
-tabs = 4
+[*.{ts,js,json}]
+indent_size = 4
+
