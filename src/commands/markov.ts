@@ -320,13 +320,13 @@ export default {
 
 			if (result.success) {
 				await interaction.editReply(
-					`✅ Retrained successfully!\n` +
-						`📁 Files loaded: ${result.filesLoaded}\n` +
-						`🔗 Chain size: ${result.chainSize}\n` +
-						`🎯 Sentence starters: ${result.starterCount}`,
+					`Retrained successfully!\n` +
+						`Files loaded: ${result.filesLoaded}\n` +
+						`Chain size: ${result.chainSize}\n` +
+						`Sentence starters: ${result.starterCount}`,
 				);
 			} else {
-				await interaction.editReply(`❌ Failed to retrain: ${result.error}`);
+				await interaction.editReply(`Failed to retrain: ${result.error}`);
 			}
 		} else if (subcommand === "stats") {
 			if (!isTrained) {
