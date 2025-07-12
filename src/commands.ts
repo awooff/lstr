@@ -8,7 +8,7 @@ export const commands: any[] = [];
 export const fetchCommands = async () => {
 	const glob = new Glob("*.ts");
 
-	for await (const filePath of glob.scan("./commands")) {
+	for await (const filePath of glob.scan("./src/commands")) {
 		const command = await import(`./commands/${filePath}`);
 
 		const commandModule = command.default || command;
