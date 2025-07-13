@@ -1,7 +1,7 @@
 import {
-	SlashCommandBuilder,
-	PermissionFlagsBits,
 	MessageFlags,
+	PermissionFlagsBits,
+	SlashCommandBuilder,
 } from "discord.js";
 import { logger } from "~/logger";
 

@@ -1,103 +1,159 @@
-import { SlashCommandBuilder } from "discord.js";
-import { readFileSync, existsSync, readdirSync } from "node:fs";
-import path from "node:path";
-import { logger } from "~/logger";
+import {
+	type ChatInputCommandInteraction,
+	type Message,
+	SlashCommandBuilder,
+} from "discord.js"
+import { logger } from "~/logger"
 
 // Markov chain state
-const markovChain = new Map();
-let starters: any[] = [];
-let isTrained = false;
+const markovChain = new Map()
+let starters: string[] = []
+let isTrained = false
 
 // Create Markov chain from text
 const addTextToChain = (text: string, order = 2) => {
 	const sentences = text
 		.split(/[.!?]+/)
-		.filter((s: string) => s.trim().length > 0);
+		.filter((s) => s.trim().length > 0)
 
 	for (const sentence of sentences) {
 		const words = sentence
 			.trim()
 			.split(/\s+/)
-			.filter((w: string) => w.length > 0);
-		if (words.length <= order) continue;
+			.filter((w) => w.length > 0)
+		if (words.length <= order) continue
 
 		// Add sentence starter
-		const starter = words.slice(0, order).join(" ");
-		starters.push(starter);
+		const starter = words.slice(0, order).join(" ")
+		if (!starters.includes(starter)) {
+			starters.push(starter)
+		}
 
 		// Build the chain
 		for (let i = 0; i <= words.length - order; i++) {
-			const key = words.slice(i, i + order).join(" ");
-			const nextWord = words[i + order];
+			const key = words.slice(i, i + order).join(" ")
+			const nextWord = words[i + order]
 
 			if (!markovChain.has(key)) {
-				markovChain.set(key, []);
+				markovChain.set(key, [])
 			}
 
 			if (nextWord) {
-				markovChain.get(key).push(nextWord);
+				markovChain.get(key).push(nextWord)
 			}
 		}
 	}
-};
+}
 
 // Generate text using the Markov chain
 const generateText = (maxLength = 100) => {
 	if (starters.length === 0) {
-		return "No training data available! Use `/markov retrain` first.";
+		return "No training data available! Use `/markov retrain` first."
 	}
 
-	const starter = starters[Math.floor(Math.random() * starters.length)];
-	const result = starter.split(" ");
+	const starter = starters[Math.floor(Math.random() * starters.length)]
+	const result = starter?.split(" ")
 
 	for (let i = 0; i < maxLength; i++) {
-		const key = result.slice(-2).join(" ");
-		const possibilities = markovChain.get(key);
+		const key = result?.slice(-2).join(" ")
+		const possibilities = markovChain.get(key)
 
 		if (!possibilities || possibilities.length === 0) {
-			break;
+			const allWords = Array.from(markovChain.values()).flat()
+			const randomFiller = allWords[Math.floor(Math.random() * allWords.length)]
+			if (!randomFiller) break
+			result?.push(randomFiller)
+			continue
 		}
 
-		const nextWord =
-			possibilities[Math.floor(Math.random() * possibilities.length)];
-		result.push(nextWord);
+		const nextWord = possibilities[Math.floor(Math.random() * possibilities.length * Math.random())]
+		result?.push(nextWord)
 
-		if (nextWord.match(/[.!?]$/)) {
-			break;
-		}
+		if (nextWord.match(/[.!?]$/)) break
 	}
 
-	return result.join(" ");
-};
+	return result?.join(" ")
+}
 
-/**
- * here is where we will make some nice changes :)
- *
- */
+// Load training data from message history
+const loadTrainingData = async (channel : any) => {
+	try {
+		const messages = await channel.messages.fetch({ limit: 100 })
+		const content = messages
+			.filter((msg: Message) => !msg.author.bot && msg.content)
+			.map((msg: Message) => msg.content)
+			.join("\n")
 
-// Load training data from files
-const loadTrainingData = () => {
-	throw new Error("Not yet implemented!");
-};
+		if (!content) {
+			return {
+				success: false,
+				error: "No usable messages found in the last 100 messages.",
+			}
+		}
 
-// Initialize training data on module load
-loadTrainingData();
+		// Reset chain
+		markovChain.clear()
+		starters = []
 
-// Export the slash command
+		addTextToChain(content)
+		isTrained = true
+
+		return {
+			success: true,
+			filesLoaded: 1,
+			chainSize: markovChain.size,
+			starterCount: starters.length,
+		}
+	} catch (err: any) {
+		logger.error("Error fetching messages:", err)
+		return {
+			success: false,
+			error: err.message || "Unknown error",
+		}
+	}
+}
+
+// Generate chaos mode output
+const generateChaoticMessage = async (channel: any, length = 60) => {
+	const messages = await channel.messages.fetch({ limit: 100 })
+	const pool = messages
+		.filter((msg) => !msg.author.bot && msg.content)
+		.map((msg) => msg.content.trim())
+		.map((text) => text.split(/\s+/).filter((w) => w.length > 0))
+		.filter((words) => words.length > 0)
+
+	if (pool.length === 0) return "No valid messages to generate chaos."
+
+	const output: string[] = []
+
+	while (output.length < length) {
+		const msgWords = pool[Math.floor(Math.random() * pool.length)]
+		const startIdx = Math.floor(Math.random() * msgWords!.length)
+		const chunkLen = Math.floor(Math.random() * 4) + 1
+		const chunk = msgWords!.slice(startIdx, startIdx + chunkLen)
+		output.push(...chunk)
+	}
+
+	// Clean sentence
+	let result = output.join(" ")
+	result = result[0]?.toUpperCase() + result.slice(1)
+	if (!/[.!?]$/.test(result)) result += "."
+
+	return result
+}
+
 export default {
 	data: new SlashCommandBuilder()
 		.setName("markov")
-		.setDescription(
-			"Generate text using Markov chains from your message history",
-		)
+		.setDescription("Generate weird sentences from your chat history")
 		.addSubcommand((subcommand) =>
 			subcommand
 				.setName("generate")
-				.setDescription("Generate text using the Markov chain")
+				.setDescription("Generate semi-realistic text from Markov chain")
 				.addIntegerOption((option) =>
 					option
 						.setName("length")
-						.setDescription("Maximum number of words to generate")
+						.setDescription("Max number of words to generate")
 						.setMinValue(10)
 						.setMaxValue(200)
 						.setRequired(false),
@@ -106,74 +162,93 @@ export default {
 		.addSubcommand((subcommand) =>
 			subcommand
 				.setName("retrain")
-				.setDescription("Reload training data and retrain the Markov chain"),
+				.setDescription("Retrain the Markov chain from the last 100 messages"),
+		)
+		.addSubcommand((subcommand) =>
+			subcommand.setName("stats").setDescription("Show Markov chain stats"),
 		)
 		.addSubcommand((subcommand) =>
 			subcommand
-				.setName("stats")
-				.setDescription("Show statistics about the current Markov chain"),
+				.setName("chaos")
+				.setDescription("Create a chaotic sentence from random words in chat"),
 		),
 
-	async execute(interaction: any) {
-		const subcommand = interaction.options.getSubcommand();
+	async execute(interaction: ChatInputCommandInteraction) {
+		const subcommand = interaction.options.getSubcommand()
 
 		if (subcommand === "generate") {
-			const length = interaction.options.getInteger("length") ?? 50;
+			const length = interaction.options.getInteger("length") ?? 50
 
 			if (!isTrained) {
 				await interaction.reply({
-					content:
-						"Markov chain not trained yet. Use `/markov retrain` to load training data.",
+					content: "Not trained yet. Use `/markov retrain` first.",
 					ephemeral: true,
-				});
-				return;
+				})
+				return
 			}
 
-			const generatedText = generateText(length);
+			const generatedText = generateText(length)
+			await interaction.reply(generatedText.slice(0, 2000))
+		}
 
-			if (generatedText.length > 2000) {
-				await interaction.reply({
-					content:
-						"Generated text is too long for Discord! Try a shorter length.",
-					ephemeral: true,
-				});
-				return;
+		else if (subcommand === "retrain") {
+			await interaction.deferReply()
+			try {
+				const channel = await interaction.client.channels.fetch(interaction.channelId)
+				if (!channel?.isTextBased()) {
+					await interaction.editReply("Only works in text channels.")
+					return
+				}
+
+				const result = await loadTrainingData(channel)
+				if (result.success) {
+					await interaction.editReply(
+						`Retrained from 100 messages.\nChain size: ${result.chainSize}\nStarters: ${result.starterCount}`,
+					)
+				} else {
+					await interaction.editReply(`❌ Failed: ${result.error}`)
+				}
+			} catch (err: any) {
+				logger.error("Retrain failed:", err)
+				await interaction.editReply("Something went wrong fetching the channel.")
 			}
+		}
 
-			await interaction.reply(generatedText);
-		} else if (subcommand === "retrain") {
-			await interaction.deferReply();
-
-			const result = loadTrainingData();
-
-			if (result.success) {
-				await interaction.editReply(
-					`Retrained successfully!\n` +
-						`Files loaded: ${result.filesLoaded}\n` +
-						`Chain size: ${result.chainSize}\n` +
-						`Sentence starters: ${result.starterCount}`,
-				);
-			} else {
-				await interaction.editReply(`Failed to retrain: ${result.error}`);
-			}
-		} else if (subcommand === "stats") {
+		else if (subcommand === "stats") {
 			if (!isTrained) {
 				await interaction.reply({
-					content:
-						"Markov chain not trained yet. Use `/markov retrain` to load training data.",
+					content: "Not trained yet. Use `/markov retrain` first.",
 					ephemeral: true,
-				});
-				return;
+				})
+				return
 			}
 
 			await interaction.reply({
 				content:
-					`**Markov Chain Statistics**\n` +
-					`Chain size: ${markovChain.size}\n` +
-					`Sentence starters: ${starters.length}\n` +
-					`Order: 2 (bigram)\n`,
+					`**Markov Chain Stats**\n` +
+					`Chain size :: ${markovChain.size}\n` +
+					`Starters :: ${starters.length}\n` +
+					`Order :: 1 (chaotic big dumb mode)`,
 				ephemeral: true,
-			});
+			})
+		}
+
+		else if (subcommand === "chaos") {
+			await interaction.deferReply()
+			try {
+				const channel = await interaction.client.channels.fetch(interaction.channelId)
+				if (!channel?.isTextBased()) {
+					await interaction.editReply("Only works in text channels.")
+					return
+				}
+
+				const sentence = await generateChaoticMessage(channel, 60)
+				await interaction.editReply(sentence.slice(0, 2000))
+			} catch (err: any) {
+				logger.error("Chaos generation failed:", err)
+				await interaction.editReply("Something went wrong while generating chaos.")
+			}
 		}
 	},
-};
+}
+

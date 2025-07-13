@@ -1,14 +1,14 @@
+import { InferenceClient } from "@huggingface/inference";
 import {
-	SlashCommandBuilder,
 	ChatInputCommandInteraction,
 	EmbedBuilder,
+	SlashCommandBuilder,
 } from "discord.js";
-import { InferenceClient } from "@huggingface/inference";
 import { logger } from "~/logger";
 
 const client = new InferenceClient(Bun.env.HF_TOKEN);
 
-function splitIntoChunks(text: string, maxLength = 1024): string[] {
+const splitIntoChunks = (text: string, maxLength = 1024): string[] => {
 	const chunks: string[] = [];
 	let current = "";
 
@@ -123,7 +123,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 	} catch (err) {
 		logger.error("Streaming inference error:", err);
 		const errorEmbed = new EmbedBuilder()
-			.setTitle(":Error:")
+			.setTitle("Error")
 			.setDescription(
 				`Something went wrong:\n\`\`\`${String((err as any)?.message || err)}\`\`\``,
 			)
