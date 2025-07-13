@@ -19,6 +19,7 @@ export default {
 		)
 		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
+	// biome-ignore lint/suspicious/noExplicitAny: srsly what is this?? cant find it in docs
 	execute: async (interaction: any) => {
 		const amount = interaction.options.getInteger("amount");
 
@@ -35,12 +36,14 @@ export default {
 			const messages = await interaction.channel.messages.fetch({
 				limit: amount,
 			});
+
 			await interaction.channel.bulkDelete(messages);
 
 			await interaction.reply({
 				content: `Successfully deleted ${messages.size} messages!`,
 				flags: MessageFlags.Ephemeral,
 			});
+
 			logger.info(`Successfully deleted ${messages.size} messages.`);
 		} catch (error) {
 			console.error("Error clearing messages:", error);

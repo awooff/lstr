@@ -80,7 +80,7 @@ const loadTrainingData = async (channel : any) => {
 	try {
 		const messages = await channel.messages.fetch({ limit: 100 })
 		const content = messages
-			.filter((msg: Message) => !msg.author.bot && msg.content)
+			.filter((msg: Message): string | false => !msg.author.bot && msg.content)
 			.map((msg: Message) => msg.content)
 			.join("\n")
 
@@ -117,10 +117,10 @@ const loadTrainingData = async (channel : any) => {
 const generateChaoticMessage = async (channel: any, length = 60) => {
 	const messages = await channel.messages.fetch({ limit: 100 })
 	const pool = messages
-		.filter((msg) => !msg.author.bot && msg.content)
-		.map((msg) => msg.content.trim())
-		.map((text) => text.split(/\s+/).filter((w) => w.length > 0))
-		.filter((words) => words.length > 0)
+		.filter((msg: Message) => !msg.author.bot && msg.content)
+		.map((msg: Message) => msg.content.trim())
+		.map((text: string) => text.split(/\s+/).filter((w) => w.length > 0))
+		.filter((words: string) => words.length > 0)
 
 	if (pool.length === 0) return "No valid messages to generate chaos."
 
@@ -128,9 +128,9 @@ const generateChaoticMessage = async (channel: any, length = 60) => {
 
 	while (output.length < length) {
 		const msgWords = pool[Math.floor(Math.random() * pool.length)]
-		const startIdx = Math.floor(Math.random() * msgWords!.length)
+		const startIdx = Math.floor(Math.random() * msgWords?.length)
 		const chunkLen = Math.floor(Math.random() * 4) + 1
-		const chunk = msgWords!.slice(startIdx, startIdx + chunkLen)
+		const chunk = msgWords?.slice(startIdx, startIdx + chunkLen) ?? "No message words can be sliced"
 		output.push(...chunk)
 	}
 
@@ -188,7 +188,7 @@ export default {
 			}
 
 			const generatedText = generateText(length)
-			await interaction.reply(generatedText.slice(0, 2000))
+			await interaction.reply(generatedText!.slice(0, 2000))
 		}
 
 		else if (subcommand === "retrain") {
@@ -244,6 +244,7 @@ export default {
 
 				const sentence = await generateChaoticMessage(channel, 60)
 				await interaction.editReply(sentence.slice(0, 2000))
+			// biome-ignore lint/suspicious/noExplicitAny: why is this even a ts error anyway? it'll complain if it's not
 			} catch (err: any) {
 				logger.error("Chaos generation failed:", err)
 				await interaction.editReply("Something went wrong while generating chaos.")

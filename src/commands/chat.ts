@@ -1,6 +1,6 @@
 import { InferenceClient } from "@huggingface/inference";
 import {
-	ChatInputCommandInteraction,
+	type ChatInputCommandInteraction,
 	EmbedBuilder,
 	SlashCommandBuilder,
 } from "discord.js";
@@ -13,11 +13,11 @@ const splitIntoChunks = (text: string, maxLength = 1024): string[] => {
 	let current = "";
 
 	for (const line of text.split("\n")) {
-		if ((current + line + "\n").length > maxLength) {
+		if ((`${current + line}\n`).length > maxLength) {
 			chunks.push(current);
 			current = "";
 		}
-		current += line + "\n";
+		current += `${line}\n`;
 	}
 
 	if (current.trim()) {
@@ -47,13 +47,13 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 		let rawBuffer = "";
 		let lastEditTime = Date.now();
 
-		const stream = await client.chatCompletionStream({
-			model: "deepseek-ai/DeepSeek-R1-0528",
-			provider: "sambanova",
-			messages: [{ role: "user", content: userMessage }],
-			temperature: 1.0,
-			stream: true,
-		});
+		const stream = client.chatCompletionStream({
+            model: "deepseek-ai/DeepSeek-R1-0528",
+            provider: "sambanova",
+            messages: [{ role: "user", content: userMessage }],
+            temperature: 1.0,
+            stream: true,
+        });
 
 		// Initial embed while we wait
 		const embed = new EmbedBuilder()
@@ -84,7 +84,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 			if (now - lastEditTime > 500) {
 				const partialEmbed = new EmbedBuilder()
 					.setTitle(`You asked: ${userMessage}`)
-					.setDescription(visibleText.slice(0, 4096 - 5) + " ▌")
+					.setDescription(`${visibleText.slice(0, 4096 - 5)} ▌`)
 					.setColor(0x5865f2)
 					.setFooter({ text: `You: ${userMessage}` });
 
@@ -110,6 +110,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 		const firstEmbed = new EmbedBuilder()
 			.setTitle(`You: ${userMessage}`)
 			.setColor(0x5865f2)
+			// biome-ignore lint/suspicious/noExplicitAny: why does it matter, it just works :tm:
 			.setDescription(chunks[0] as any);
 
 		await interaction.editReply({ embeds: [firstEmbed] });
@@ -117,6 +118,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 		for (let i = 1; i < chunks.length; i++) {
 			const embed = new EmbedBuilder()
 				.setColor(0x5865f2)
+				// biome-ignore lint/suspicious/noExplicitAny: why does it matter, it just works :tm:
 				.setDescription(chunks[i] as any);
 			await interaction.followUp({ embeds: [embed] });
 		}
@@ -125,6 +127,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 		const errorEmbed = new EmbedBuilder()
 			.setTitle("Error")
 			.setDescription(
+				// biome-ignore lint/suspicious/noExplicitAny: why does it matter, it just works :tm:
 				`Something went wrong:\n\`\`\`${String((err as any)?.message || err)}\`\`\``,
 			)
 			.setColor(0xff0000)
