@@ -7,15 +7,15 @@ import { logger } from "~/logger";
 
 export default {
 	data: new SlashCommandBuilder()
-		.setName("clear")
+		.setName("nuke")
 		.setDescription("Clear a specified number of messages from the channel")
 		.addIntegerOption((option) =>
 			option
 				.setName("amount")
-				.setDescription("Number of messages to delete (1-100)")
+				.setDescription("Number of messages to delete (1-300)")
 				.setRequired(true)
 				.setMinValue(1)
-				.setMaxValue(100),
+				.setMaxValue(1_000),
 		)
 		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
