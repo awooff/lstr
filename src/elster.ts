@@ -7,6 +7,7 @@ import {
 } from "discord.js"
 import { deployCommands, fetchCommands } from "./commands"
 import { logger } from "./logger"
+import { generateText, loadTrainingData, markovChain } from "./commands/markov"
 
 declare module "discord.js" {
 	interface Client {
@@ -26,6 +27,23 @@ elster.commands = new Collection()
 
 await fetchCommands()
 await deployCommands()
+
+elster.on('messageCreate', async (message) => {
+    // Check if the message is from a bot or if it's empty
+    if (message.author.bot || !message.content) return;
+
+    // Fetch the last 100 messages and update the Markov chain
+    const channel = message.channel;
+    const result = await loadTrainingData(channel);
+
+    // Check if the Markov chain has been trained with at least 100 messages
+    if (result.success && markovChain.size >= 100) {
+        // Generate a message using the Markov chain
+        const generatedMessage = generateText(50); // Adjust length as needed
+        await channel.send(generatedMessage as any);
+    }
+});
+
 
 elster.on(Events.InteractionCreate, async (interaction) => {
 	if (!interaction.isChatInputCommand()) return

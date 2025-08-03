@@ -6,7 +6,7 @@ import {
 import { logger } from "~/logger";
 
 // Markov chain state
-const markovChain = new Map();
+export const markovChain = new Map();
 let starters: string[] = [];
 let isTrained = false;
 
@@ -44,7 +44,7 @@ const addTextToChain = (text: string, order = 2) => {
 };
 
 // Generate text using the Markov chain
-const generateText = (maxLength = 100) => {
+export const generateText = (maxLength = 100) => {
 	if (starters.length === 0) {
 		return "No training data available! Use `/markov retrain` first.";
 	}
@@ -78,7 +78,7 @@ const generateText = (maxLength = 100) => {
 };
 
 // Load training data from message history
-const loadTrainingData = async (channel: any) => {
+export const loadTrainingData = async (channel: any) => {
 	try {
 		const messages = await channel.messages.fetch({ limit: 100 });
 		const content = messages
@@ -116,7 +116,7 @@ const loadTrainingData = async (channel: any) => {
 };
 
 // Generate chaos mode output
-const generateChaoticMessage = async (channel: any, length = 60) => {
+export const generateChaoticMessage = async (channel: any, length = 60) => {
 	const messages = await channel.messages.fetch({ limit: 100 });
 	const pool = messages
 		.filter((msg: Message) => !msg.author.bot && msg.content)
