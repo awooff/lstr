@@ -6,6 +6,7 @@ declare module "bun" {
 		GUILD_ID: string;
 		DISCORD_TOKEN: string;
 		HF_TOKEN: string;
+		COUNT_TARGET: number;
 	}
 }
 

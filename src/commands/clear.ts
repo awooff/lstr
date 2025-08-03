@@ -19,7 +19,7 @@ export default {
 		)
 		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
-	// biome-ignore lint/suspicious/noExplicitAny: srsly what is this?? cant find it in docs
+	// biome-ignore lint/suspicious/noExplicitAny: srsly what is this?? it'll always break even if the code stays the same and as any. screw this why do i even use this stupid language that demands your types and simeltaneously gets confused over them what the fuck did i sign up for cause it definately wasn't for this language to be a fucking bitchass like cmon man this is why i switched to go and c++, yknow? sane language? but nah. screw that. we had to go stupid. of course.
 	execute: async (interaction: any) => {
 		const amount = interaction.options.getInteger("amount");
 
